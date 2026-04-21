@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  ingestor:
+    build:
+      context: ./services/ingestor
+    ports:
+      - "${INGESTOR_PORT:-8001}:8001"
+    environment:
+      - INGESTOR_PORT=8001
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  aggregator:
+    build:
+      context: ./services/aggregator
+    ports:
+      - "${AGGREGATOR_PORT:-8002}:8002"
+    environment:
+      - AGGREGATOR_PORT=8002
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  alerter:
+    build:
+      context: ./services/alerter
+    ports:
+      - "${ALERTER_PORT:-8003}:8003"
+    environment:
+      - ALERTER_PORT=8003
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
